@@ -641,5 +641,5 @@ document.addEventListener('mousemove', e =>{
     m.cursor.style.left = `${e.pageX}px`;
 });
 // resize event
-window.onresize = m.buildMatrix.bind(m);
+// window.onresize = m.buildMatrix.bind(m);
 
