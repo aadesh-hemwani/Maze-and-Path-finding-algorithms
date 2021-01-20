@@ -16,6 +16,7 @@ function Matrix(){
     this.path = "rgb(216, 232, 72)"; //green
     this.visited = "rgb(201, 73, 73)"; //red
     this.explore = "rgb(118, 189, 219)"; //blue
+    this.block_border = ".2px solid rgba(15, 15, 15, 0.2)";
     this.start_block = [0, 0];
     this.end_block = [0, 0];
     this.startNotMarked = false;
@@ -180,14 +181,14 @@ Matrix.prototype.buildMatrix = async function(){
     }
 
     if(window.innerWidth < 600){
-        this.blockSize = 12;
-        this.cols = Math.floor((window.innerWidth-40)/this.blockSize);
-        this.rows = Math.floor((window.innerHeight-190)/this.blockSize);
+        this.blockSize = 14;
+        this.cols = Math.floor((window.innerWidth-50)/this.blockSize);
+        this.rows = Math.floor((window.innerHeight-200)/this.blockSize);
     }
     else{
-        this.blockSize = 18;
+        this.blockSize = 20;
         this.cols = Math.floor((window.innerWidth-80)/this.blockSize);
-        this.rows = Math.floor((window.innerHeight-180)/this.blockSize);    
+        this.rows = Math.floor((window.innerHeight-140)/this.blockSize);    
     }
 
     if(this.rows % 2 === 0) this.rows+= 3;
@@ -230,6 +231,15 @@ Matrix.prototype.buildMatrix = async function(){
         this.end_block[1] = oddNum % 2 === 0 ? oddNum+1: oddNum;
     }
 
+
+    if(this.rows >= 23 && this.cols >= 18 || this.row >= 18 && this.cols >= 59){
+        var x = document.querySelector(".select");
+        var option = document.createElement("option");
+        option.text = "Not a Maze";
+        option.value = "special";
+        x.add(option);
+    }
+
     this.blocks[this.start_block[0]].childNodes[this.start_block[1]].classList.add("home");
     this.blocks[this.end_block[0]].childNodes[this.end_block[1]].classList.add("exit");        
     this.buildFrame();
@@ -246,7 +256,7 @@ Matrix.prototype.makeWall = function(cBlock){
 Matrix.prototype.breakWall = function(cBlock){
     cBlock.animate(this.wallAnimation, {duration: 500, direction:"reverse"});
     cBlock.style.backgroundColor = "white";
-    cBlock.style.border = ".5px solid rgba(190, 190, 190, 0.8)";
+    cBlock.style.border = this.block_border;
 }
 
 Matrix.prototype.buildWall = function(node){
@@ -274,6 +284,15 @@ Matrix.prototype.reset = async function() {
 
 // search algorithms
 Matrix.prototype.findPath = async function() {
+    // let walls = [];
+    // for(let i=1; i<this.rows-1; ++i){
+    //     for(let j=1; j<this.cols-1; ++j){
+    //         if(this.blocks[i].childNodes[j].style.backgroundColor === this.wall){
+    //             walls.push([i, j]);
+    //         }
+    //     }
+    // }
+    // console.log(walls);
     this.isRunning = true;
     this.toggelBtns();
     let algo = this.algorithmSelect.value;
@@ -374,7 +393,8 @@ Matrix.prototype.dijkstra = async function(){
             if(cBlock.style.backgroundColor !== this.wall){
                 cBlock.animate(this.exploreAnimation, 300);
                 distance.set(cBlock, Infinity);
-                cBlock.innerHTML = "&#8734;";        
+                cBlock.style.fontSize = "1rem";
+                cBlock.innerHTML = "&#8734;";
             }
         }
         await this.delay(30);
@@ -419,6 +439,7 @@ Matrix.prototype.dijkstra = async function(){
                             }
                             else{
                                 this.blocks[check_row].childNodes[check_col].innerHTML = distance.get(this.blocks[check_row].childNodes[check_col]);
+                                this.blocks[check_row].childNodes[check_col].style.fontSize = "0.7rem";
                             }                    
                         }
                     }
@@ -442,6 +463,23 @@ Matrix.prototype.buildFrame = async function(){
     }
 }
 
+Matrix.prototype.specialMaze = async function(){
+    if(this.cols > 59){
+        let special = [[3, 26],[3, 27],[3, 28],[3, 45],[3, 46],[3, 47],[4, 26],[4, 28],[4, 45],[4, 47],[5, 26],[5, 47],[6, 26],[6, 47],[7, 26],[7, 47],[8, 3],[8, 4],[8, 5],[8, 6],[8, 7],[8, 8],[8, 12],[8, 13],[8, 14],[8, 15],[8, 16],[8, 17],[8, 26],[8, 29],[8, 30],[8, 31],[8, 32],[8, 33],[8, 34],[8, 35],[8, 38],[8, 39],[8, 40],[8, 41],[8, 42],[8, 43],[8, 47],[9, 3],[9, 8],[9, 12],[9, 17],[9, 26],[9, 29],[9, 35],[9, 38],[9, 43],[9, 47],[10, 3],[10, 8],[10, 12],[10, 17],[10, 26],[10, 29],[10, 35],[10, 38],[10, 47],[11, 8],[11, 17],[11, 26],[11, 29],[11, 35],[11, 38],[11, 47],[12, 3],[12, 4],[12, 5],[12, 6],[12, 7],[12, 8],[12, 12],[12, 13],[12, 14],[12, 15],[12, 16],[12, 17],[12, 20],[12, 21],[12, 22],[12, 23],[12, 24],[12, 25],[12, 26],[12, 29],[12, 30],[12, 31],[12, 32],[12, 33],[12, 34],[12, 35],[12, 38],[12, 39],[12, 40],[12, 41],[12, 42],[12, 43],[12, 47],[12, 48],[12, 49],[12, 50],[12, 51],[12, 52],[13, 3],[13, 8],[13, 12],[13, 17],[13, 20],[13, 26],[13, 29],[13, 43],[13, 47],[13, 52],[14, 3],[14, 8],[14, 12],[14, 17],[14, 20],[14, 26],[14, 29],[14, 43],[14, 47],[14, 52],[15, 3],[15, 8],[15, 12],[15, 17],[15, 20],[15, 26],[15, 29],[15, 35],[15, 43],[15, 47],[15, 52],[16, 3],[16, 8],[16, 12],[16, 17],[16, 20],[16, 26],[16, 29],[16, 35],[16, 38],[16, 43],[16, 47],[16, 52],[17, 3],[17, 4],[17, 5],[17, 6],[17, 7],[17, 8],[17, 12],[17, 13],[17, 14],[17, 15],[17, 16],[17, 17],[17, 20],[17, 21],[17, 22],[17, 23],[17, 24],[17, 25],[17, 26],[17, 29],[17, 30],[17, 31],[17, 32],[17, 33],[17, 34],[17, 35],[17, 38],[17, 39],[17, 40],[17, 41],[17, 42],[17, 43],[17, 47],[17, 52],[18, 8],[18, 9],[18, 17],[18, 18],[18, 26],[18, 27],[18, 47],[18, 52],[18, 53],[18, 55],[18, 57],[18, 59]];
+        for(let i=0; i<special.length; ++i){
+            await this.delay(10);
+            this.makeWall(this.blocks[special[i][0]].childNodes[special[i][1]]);
+        }
+    }
+    else{
+        let special = [[5, 4],[5, 5],[5, 6],[5, 7],[5, 8],[5, 9],[5, 12],[5, 13],[5, 17],[5, 18],[6, 3],[6, 4],[6, 9],[6, 10],[6, 13],[6, 18],[7, 3],[7, 10],[7, 13],[7, 18],[8, 3],[8, 10],[8, 13],[8, 18],[9, 3],[9, 10],[9, 13],[9, 18],[10, 3],[10, 10],[10, 13],[10, 18],[11, 3],[11, 10],[11, 13],[11, 18],[12, 3],[12, 10],[12, 13],[12, 18],[13, 3],[13, 10],[13, 13],[13, 18],[14, 3],[14, 10],[14, 13],[14, 18],[15, 3],[15, 4],[15, 5],[15, 6],[15, 7],[15, 8],[15, 9],[15, 10],[15, 12],[15, 13],[15, 14],[15, 15],[15, 16],[15, 17],[15, 18],[16, 3],[16, 10],[16, 13],[16, 18],[17, 3],[17, 10],[17, 13],[17, 18],[18, 3],[18, 10],[18, 13],[18, 18],[19, 3],[19, 10],[19, 13],[19, 18],[20, 3],[20, 10],[20, 13],[20, 18],[21, 3],[21, 10],[21, 13],[21, 18],[22, 3],[22, 10],[22, 13],[22, 18],[23, 2],[23, 3],[23, 4],[23, 9],[23, 10],[23, 11],[23, 12],[23, 13],[23,18]]
+        for(let i=0; i<special.length; ++i){
+            await this.delay(10);
+            this.makeWall(this.blocks[special[i][0]].childNodes[special[i][1]]);
+        }
+    }
+}
+
 Matrix.prototype.generateMaze = async function(){
     this.isRunning = true;
     this.toggelBtns();
@@ -449,7 +487,7 @@ Matrix.prototype.generateMaze = async function(){
         for(let j=0;  j<this.cols; ++j){
             this.blocks[i].childNodes[j].style.backgroundColor = "white";
             this.blocks[i].childNodes[j].innerHTML = "";
-            this.blocks[i].childNodes[j].style.border = ".5px solid rgba(190, 190, 190, 0.8)";
+            this.blocks[i].childNodes[j].style.border = this.block_border;
             
         }
     }
@@ -474,6 +512,12 @@ Matrix.prototype.generateMaze = async function(){
         case "hb":
             await this.horizontalBarsMaze();
             break;
+        
+        case "special":
+            await this.specialMaze();
+            break;
+            
+            
     }
     this.buildFrame();
     this.isRunning = false;
@@ -641,5 +685,4 @@ document.addEventListener('mousemove', e =>{
     m.cursor.style.left = `${e.pageX}px`;
 });
 // resize event
-window.onresize = m.buildMatrix.bind(m);
-
+// window.onresize = m.buildMatrix.bind(m);
