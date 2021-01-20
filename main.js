@@ -181,9 +181,9 @@ Matrix.prototype.buildMatrix = async function(){
     }
 
     if(window.innerWidth < 600){
-        this.blockSize = 14;
+        this.blockSize = 15;
         this.cols = Math.floor((window.innerWidth-50)/this.blockSize);
-        this.rows = Math.floor((window.innerHeight-200)/this.blockSize);
+        this.rows = Math.floor((window.innerHeight-220)/this.blockSize);
     }
     else{
         this.blockSize = 20;
@@ -284,15 +284,6 @@ Matrix.prototype.reset = async function() {
 
 // search algorithms
 Matrix.prototype.findPath = async function() {
-    // let walls = [];
-    // for(let i=1; i<this.rows-1; ++i){
-    //     for(let j=1; j<this.cols-1; ++j){
-    //         if(this.blocks[i].childNodes[j].style.backgroundColor === this.wall){
-    //             walls.push([i, j]);
-    //         }
-    //     }
-    // }
-    // console.log(walls);
     this.isRunning = true;
     this.toggelBtns();
     let algo = this.algorithmSelect.value;
