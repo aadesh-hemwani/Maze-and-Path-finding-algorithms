@@ -13,7 +13,7 @@ function Matrix(){
     this.directions = [[1, 0], [0, -1], [0, 1], [-1, 0]];
     this.directions2 = [[2, 0], [0, -2], [0, 2], [-2, 0]];
     this.wall = "rgb(31, 31, 31)"; //black
-    this.path = "rgb(216, 232, 72)"; //green
+    this.path = "rgb(216, 232, 72)"; //yellow
     this.visited = "rgb(201, 73, 73)"; //red
     this.explore = "rgb(118, 189, 219)"; //blue
     this.block_border = ".2px solid rgba(15, 15, 15, 0.2)";
@@ -26,11 +26,11 @@ function Matrix(){
     this.blockSize = 18;
     this.isRunning = false;
     this.wallAnimation = [{
-        transform: "scale(.3)",
+        transform: "scale(0)",
         backgroundColor: "rgb(120, 120, 120)",
     },
     {
-        transform: "scale(1.2)",
+        transform: "scale(1.3)",
         backgroundColor: "rgb(61, 61, 61)",
     },
     {
@@ -39,37 +39,44 @@ function Matrix(){
     }];
 
     this.exploreAnimation = [
-    {
-        transform: "scale(0)",
-        borderRadius: "200px",
-        backgroundColor: "rgb(64, 88, 207)",
-    },
-    {
-        transform: "scale(0.2)",
-        borderRadius: "160px",
-        backgroundColor: "rgb(11, 125, 186)",
-    },
-    {
-        transform: "scale(0.6)",
-        borderRadius: "120px",
-        backgroundColor: "rgb(11, 125, 186)",
-    },
-    {
-        transform: "scale(1)",
-        borderRadius: "80px",
-        backgroundColor: "rgb(51, 219, 222)",
-    },
-    {
-        transform: "scale(1.2)",
-        borderRadius: "10px",
-        backgroundColor: "rgb(51, 219, 222)",
-    },
-    {
-        transform: "scale(1)",
-        borderRadius:"0px",
-        backgroundColor: "rgb(118, 189, 219)",
-    }];
+        {
+            transform: "scale(0.1)",
+            backgroundColor: "rgba(0, 0, 66, 0.75)",
+            borderRadius: "100%",
+        },
+        {
+            backgroundColor: "rgba(64, 88, 230,.75)"
+        },
+        {
+            transform: "scale(1.1)",
+            backgroundColor: "rgba(0, 217, 159, 0.75)",
+        },
+        {
+            transform: "scale(1.0)",
+            backgroundColor: `${this.explore}`
+        }
+    ];
+    this.visitedAnimation = [
+        {
+            backgroundColor: `${this.explore}`,
+            transform: "scale(1.3)"
+        },
+        {
+            backgroundColor: "rgb(201, 73, 73)",
+            transform: "scale(1)"
+        }];
+
+    this.pathAnimation = [
+        {
+            backgroundColor: `${this.explore}`,
+            transform: "scale(1.2)"
+        },
+        {
+            backgroundColor: `${this.path}`,
+        }
+    ]
 }
+
 // initialize
 Matrix.prototype.init = function(){
     this.buildMatrix();    
@@ -181,9 +188,9 @@ Matrix.prototype.buildMatrix = async function(){
     }
 
     if(window.innerWidth < 600){
-        this.blockSize = 15;
+        this.blockSize = 14;
         this.cols = Math.floor((window.innerWidth-50)/this.blockSize);
-        this.rows = Math.floor((window.innerHeight-220)/this.blockSize);
+        this.rows = Math.floor((window.innerHeight-200)/this.blockSize);
     }
     else{
         this.blockSize = 20;
@@ -310,9 +317,10 @@ Matrix.prototype.findPath = async function() {
 Matrix.prototype.DFS = async function (r, c){
     if(r >=0 && r < this.rows && c >=0 && c < this.cols && this.blocks[r].childNodes[c].style.backgroundColor !== this.visited && this.blocks[r].childNodes[c].style.backgroundColor !== this.explore &&this.blocks[r].childNodes[c].style.backgroundColor !== this.wall){    
         block = this.blocks[r].childNodes[c];
-        block.animate(this.exploreAnimation, 900);
+        block.animate(this.exploreAnimation, 1000);
         block.style.backgroundColor = this.explore;
         if(r===this.end_block[0] && c ===this.end_block[1]){
+            
             block.style.backgroundColor = this.path;
             return true;
         }
@@ -320,13 +328,14 @@ Matrix.prototype.DFS = async function (r, c){
         
         for(let i=0; i<4; ++i){
              if(await this.DFS(r+this.directions[i][0], c+this.directions[i][1]) === true){
+                this.blocks[r].childNodes[c].animate(this.pathAnimation, 300);
                 this.blocks[r].childNodes[c].style.backgroundColor = this.path;
                 await this.delay(50);
                 return true;
              }
         }
         await this.delay(60);
-        this.blocks[r].childNodes[c].classList.add("visitedAnim");
+        this.blocks[r].childNodes[c].animate(this.visitedAnimation, 1000);
         this.blocks[r].childNodes[c].style.backgroundColor = this.visited;
         return false;
     }
@@ -339,15 +348,16 @@ Matrix.prototype.BFS = async function(){
     let q = [];
     let visited = new Set();
     let backtrack = new Map();
-    q.push(m.blocks[this.start_block[0]].childNodes[this.start_block[1]]);
+    q.push(this.blocks[this.start_block[0]].childNodes[this.start_block[1]]);
 
     while(q.length !==0){
         let node = q.shift();
         if(node === this.blocks[this.end_block[0]].childNodes[this.end_block[1]]){
             node.style.backgroundColor = this.path;
             while(node !== this.blocks[this.start_block[0]].childNodes[this.start_block[1]]){
-                await this.delay(40);
+                await this.delay(35);
                 node = backtrack.get(node);
+                node.animate(this.pathAnimation, 300);
                 node.style.backgroundColor = this.path;
             }
             break;
@@ -368,7 +378,7 @@ Matrix.prototype.BFS = async function(){
         }
         node.animate(this.exploreAnimation, 1000);
         node.style.backgroundColor = this.explore;
-        await this.delay(25);
+        await this.delay(30);
     }
 }  
 
@@ -379,16 +389,17 @@ Matrix.prototype.dijkstra = async function(){
     let backtrack = new Map();
 
     for(let i=1; i<this.rows-1; i++){
+        await this.delay(30);
         for(let j=1; j<this.cols-1; j++){
             let cBlock = this.blocks[i].childNodes[j];
             if(cBlock.style.backgroundColor !== this.wall){
-                cBlock.animate(this.exploreAnimation, 300);
+                cBlock.animate(this.exploreAnimation, 500);
                 distance.set(cBlock, Infinity);
                 cBlock.style.fontSize = "1rem";
                 cBlock.innerHTML = "&#8734;";
             }
         }
-        await this.delay(30);
+        
     }
     distance.set(this.blocks[this.start_block[0]].childNodes[this.start_block[[1]]], 0);
     q.push(this.blocks[this.start_block[0]].childNodes[this.start_block[[1]]]);
@@ -396,7 +407,7 @@ Matrix.prototype.dijkstra = async function(){
     
     while(q.length !== 0){
         let node = q.shift();
-        node.animate(this.exploreAnimation, 900);
+        node.animate(this.exploreAnimation, 1500);
         node.style.backgroundColor = this.explore;
         await this.delay(30);
 
@@ -405,6 +416,7 @@ Matrix.prototype.dijkstra = async function(){
             while(node !== this.blocks[this.start_block[0]].childNodes[this.start_block[1]]){
                 await this.delay(40);
                 node = backtrack.get(node);
+                node.animate(this.pathAnimation, 300);
                 node.style.backgroundColor = this.path;
             }
             break;
@@ -664,16 +676,21 @@ Matrix.prototype.randomMaze = async function(){
     this.buildFrame();
 }
 
-// start
-const m = new Matrix();
-m.init();
 
-// custom cursor
-document.addEventListener('mousemove', e =>{
-    m.cursorDot.style.top = `${e.pageY}px`;
-    m.cursorDot.style.left = `${e.pageX}px`;
-    m.cursor.style.top = `${e.pageY}px`;
-    m.cursor.style.left = `${e.pageX}px`;
-});
-// resize event
-// window.onresize = m.buildMatrix.bind(m);
+// start
+window.onload = function(){
+    const m = new Matrix();
+    m.init();
+
+    // custom cursor
+    document.addEventListener('mousemove', e =>{
+        m.cursorDot.style.top = `${e.pageY}px`;
+        m.cursorDot.style.left = `${e.pageX}px`;
+        m.cursor.style.top = `${e.pageY}px`;
+        m.cursor.style.left = `${e.pageX}px`;
+    });
+
+}
+
+
+

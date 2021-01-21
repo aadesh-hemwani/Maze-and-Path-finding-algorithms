@@ -7,7 +7,7 @@
 }
 body{
     padding-top: 1rem;
-    background-color:rgb(235, 235, 235);
+    background-color:rgb(215, 215, 215);
 }
 
 #canvas{
@@ -15,16 +15,17 @@ body{
     margin: 0 auto;
 }
 table{
+    background-color: white;
     border-collapse: collapse;
 }
 
 /* CURSOR */
 .cursorDot{
     position: absolute;
-    width: .6rem;
-    height: .6rem;
+    width: .65rem;
+    height: .65rem;
     background-color: black;
-    border-radius: 20rem;
+    border-radius: 50%;
     z-index: 9;
     pointer-events: none;
     transform: translate(-50%, -50%);
@@ -32,14 +33,13 @@ table{
 
 .cursor{
     position: absolute;
-    width: 1.4rem;
-    height: 1.4rem;
-    border-radius: 20rem;
-    border: 5px solid rgb(0, 0, 0);
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    border: 4px solid black;
     pointer-events: none;
-    background-color: rgba(255, 255, 255, 1);
     z-index: 10;
-    transition: 0.15s;
+    transition: all .1s ease;
     transform: translate(-50%, -50%);
     animation: cursor-pulse 1s infinite;
 }
@@ -51,35 +51,14 @@ table{
     animation: none;
 }
 
-@media only screen and (max-width: 400px) {
-    .cursor, .cursorDot, .cursorBlur, .matrixCursor{
-        visibility: hidden;
-    }
-    
-}
+
 
 @keyframes cursor-pulse{
-    0%{
+    from{
         transform: translate(-50%, -50%) scale(0);
         opacity: 1;
     }   
-    20%{
-        transform: translate(-50%, -50%) scale(0.2);
-        opacity: 0.8;
-    }
-    40%{
-        transform: translate(-50%, -50%) scale(0.4);   
-        opacity: 0.6;
-    }
-    60%{
-        transform: translate(-50%, -50%) scale(0.6);
-        opacity: 0.4;
-    }
-    80%{
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.2;
-    }
-    100%{
+    to{
         transform: translate(-50%, -50%) scale(1.5);
         opacity: 0;
     }
@@ -160,52 +139,6 @@ option {
     font-size:1.5rem;
 }
 
-/* Amimatations */
-.pathAnim{
-    animation: path 2s infinite;
-}       
-@keyframes path {
-    0%{
-        transform: scale(1);
-    }               
-    25%{
-        transform: scale(1.1);
-    }               
-    50%{
-        transform: scale(0.9);
-    }               
-    75%{
-        transform: scale(1.1);
-    }               
-    100%{
-        transform: scale(1);
-    }               
-}
-.visitedAnim{
-    animation: visited .5s ease-out;
-}       
-@keyframes visited {
-    0%{
-        background-color: rgb(118, 189, 219);
-        border-radius: 8px;
-        transform: scale(1.5);
-    }               
-    25%{
-        background-color: rgb(219, 118, 118);
-        transform: scale(0.95);
-        border-radius: 4px;
-    }               
-    50%{
-        background-color: rgb(219, 118, 118);
-        transform: scale(1.2);
-        border-radius: 2px;
-    }               
-    100%{
-        background-color: rgb(201, 73, 73);
-        transform: scale(1);
-        border-radius: 0px;
-    }               
-}
 
 /* PINS */
 .exit, .home{
@@ -241,7 +174,7 @@ option {
     border: .1px solid rgb(150, 150, 150);
     background-color: rgb(247, 172, 79);
     border-radius: 20rem;
-    transform: translate(-.8rem ,-1rem) rotate(-45deg);
+    transform: translate(-.8rem ,-0.7rem) rotate(-45deg);
     top: .5rem;
     left: .5rem;
     box-shadow: 0px 0px 10px rgba(150, 150, 150, 0.5);
@@ -252,4 +185,15 @@ option {
 }
 .exit:active, .home:active{
     transform: translateY(0px);
+}
+
+@media (max-width: 600px) {
+    .cursor, .cursorDot, .cursorBlur, .matrixCursor{
+        visibility: hidden;
+    }
+
+    .home::after, .exit::after{
+        width: 1.5rem;
+        height: 1.5rem;
+    }
 }
