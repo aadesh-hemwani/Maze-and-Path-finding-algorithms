@@ -1,3 +1,41 @@
+function PriorityQueue(){
+    this.data = [];
+}
+
+PriorityQueue.prototype.enqueue = function(element, priority){
+    if(this.data.length === 0){
+        this.data.push([element, priority])
+    }
+    else{
+        let added = false;
+        let n = this.data.length;
+        for(let i=0; i<n; ++i){
+            if(priority < this.data[i][1]){
+                this.data.splice(i, 0, [element, priority]);
+                added = true;
+                break;
+            }
+        }
+        if(!added){
+            this.data.push([element, priority]);
+        }
+    }
+}
+
+PriorityQueue.prototype.dequeue = function(){
+    if(this.data.length !== 0){
+        let pop = this.data.shift();
+        return pop[0];
+    }
+        
+}
+
+PriorityQueue.prototype.peek = function(){
+    if(this.data.length !== 0)
+        return this.data[0][0];
+}
+
+
 function Matrix(){
     this.cursorDot = document.querySelector(".cursorDot");
     this.cursor = document.querySelector(".cursor");
@@ -385,7 +423,7 @@ Matrix.prototype.BFS = async function(){
 Matrix.prototype.dijkstra = async function(){
     let distance = new Map();
     let visited = new Set();
-    let q = [];
+    const q = new PriorityQueue ();
     let backtrack = new Map();
 
     for(let i=1; i<this.rows-1; i++){
@@ -401,12 +439,13 @@ Matrix.prototype.dijkstra = async function(){
         }
         
     }
-    distance.set(this.blocks[this.start_block[0]].childNodes[this.start_block[[1]]], 0);
-    q.push(this.blocks[this.start_block[0]].childNodes[this.start_block[[1]]]);
-    visited.add(this.blocks[this.start_block[0]].childNodes[this.start_block[[1]]]);
+    let start = this.blocks[this.start_block[0]].childNodes[this.start_block[[1]]];
+    distance.set(start, 0);
+    q.enqueue(start, distance.get(start));
+    visited.add(start);
     
-    while(q.length !== 0){
-        let node = q.shift();
+    while(q.peek() !== undefined){
+        let node = q.dequeue();
         node.animate(this.exploreAnimation, 1500);
         node.style.backgroundColor = this.explore;
         await this.delay(30);
@@ -431,7 +470,6 @@ Matrix.prototype.dijkstra = async function(){
             
             if(check_row >= 1 && check_row < this.rows-1 && check_col >=1 && check_col < this.cols-1){
                 if(this.blocks[check_row].childNodes[check_col].style.backgroundColor !== this.wall && this.blocks[check_row].childNodes[check_col].style.backgroundColor !== this.explore && !visited.has(this.blocks[check_row].childNodes[check_col])){
-                    q.push(this.blocks[check_row].childNodes[check_col]);
                     if(distance.get(node)+1 < distance.get(this.blocks[check_row].childNodes[check_col])){
                         distance.set(this.blocks[check_row].childNodes[check_col], distance.get(node)+1);
                         backtrack.set(this.blocks[check_row].childNodes[check_col], node);
@@ -446,6 +484,7 @@ Matrix.prototype.dijkstra = async function(){
                             }                    
                         }
                     }
+                    q.enqueue(this.blocks[check_row].childNodes[check_col], distance.get(this.blocks[check_row].childNodes[check_col]));
                 }
             }       
         }
