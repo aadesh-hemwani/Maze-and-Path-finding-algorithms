@@ -1,38 +1,37 @@
-function PriorityQueue(){
-    this.data = [];
-}
-
-PriorityQueue.prototype.enqueue = function(element, priority){
-    if(this.data.length === 0){
-        this.data.push([element, priority])
+class PriorityQueue {
+    constructor() {
+        this.data = [];
     }
-    else{
-        let added = false;
-        let n = this.data.length;
-        for(let i=0; i<n; ++i){
-            if(priority < this.data[i][1]){
-                this.data.splice(i, 0, [element, priority]);
-                added = true;
-                break;
-            }
-        }
-        if(!added){
+    enqueue(element, priority) {
+        if (this.data.length === 0) {
             this.data.push([element, priority]);
         }
+        else {
+            let added = false;
+            let n = this.data.length;
+            for (let i = 0; i < n; ++i) {
+                if (priority < this.data[i][1]) {
+                    this.data.splice(i, 0, [element, priority]);
+                    added = true;
+                    break;
+                }
+            }
+            if (!added) {
+                this.data.push([element, priority]);
+            }
+        }
     }
-}
+    dequeue() {
+        if (this.data.length !== 0) {
+            let pop = this.data.shift();
+            return pop[0];
+        }
 
-PriorityQueue.prototype.dequeue = function(){
-    if(this.data.length !== 0){
-        let pop = this.data.shift();
-        return pop[0];
     }
-        
-}
-
-PriorityQueue.prototype.peek = function(){
-    if(this.data.length !== 0)
-        return this.data[0][0];
+    peek() {
+        if (this.data.length !== 0)
+            return this.data[0][0];
+    }
 }
 
 
@@ -42,6 +41,7 @@ function Matrix(){
     this.canvas = document.getElementById("canvas");
     this.startBtn = document.querySelector("#start");
     this.resetBtn = document.querySelector("#reset");
+    this.clearMatrix = document.querySelector("#clearMatrix");
     this.generateMazeBtn = document.querySelector("#generateMaze");
     this.mazeSelect = document.querySelector("#maze");
     this.algorithmSelect = document.querySelector("#algorithm");
@@ -121,20 +121,29 @@ Matrix.prototype.init = function(){
     this.startBtn.onclick = this.findPath.bind(this);
     this.resetBtn.onclick = this.reset.bind(this);
     this.generateMazeBtn.onclick = this.generateMaze.bind(this);
+    this.clearMatrix.onclick = this.clearCanvas.bind(this);
     document.addEventListener('keyup', this.shortcutKeys.bind(this), false);
 }
 
 // utilities
 Matrix.prototype.shortcutKeys = function(e){
     if(!this.isRunning){
-        if (e.keyCode === 83) {
-            this.findPath()
-        }
-        else if (e.keyCode === 82) {
-            this.reset()
-        }
-        else if(e.keyCode === 77){
-            this.generateMaze();
+        switch(e.keyCode){
+            case 83:
+                this.findPath();
+                break;
+            
+            case 82:
+                this.reset();
+                break;
+            
+            case 77:
+                this.generateMaze();
+                break;
+            case 67:
+                this.clearCanvas();
+                break;
+                
         }
     }
 }
@@ -150,16 +159,20 @@ Matrix.prototype.toggelBtns = function(){
         this.startBtn.style.backgroundColor = "gray";
         this.resetBtn.style.backgroundColor = "gray";
         this.generateMazeBtn.style.backgroundColor = "gray";
+        this.clearMatrix.style.backgroundColor = "gray";
+        
     }
     else{
         this.startBtn.style.backgroundColor = "rgb(67, 182, 111)"
         this.resetBtn.style.backgroundColor = "rgb(66, 130, 242)";
         this.generateMazeBtn.style.backgroundColor = "rgb(66, 130, 242)";
+        this.clearMatrix.style.backgroundColor = "rgb(66, 130, 242)";
+        
     }
     this.startBtn.disabled = !this.btns;
     this.resetBtn.disabled = !this.btns;
     this.generateMazeBtn.disabled = !this.btns;
-
+    this.clearMatrix.disabled = !this.btns;
     this.btns = !this.btns;
 }
 
@@ -192,6 +205,11 @@ Matrix.prototype.actionListners = function(){
                     currentElement.classList.add("exit");
                     this.end_block[0] = currentElement.closest('tr').rowIndex;
                     this.end_block[1] =  currentElement.cellIndex;
+                    let start = this.blocks[this.start_block[0]].childNodes[this.start_block[1]];
+                    if(start.style.backgroundColor === this.path || start.style.backgroundColor === this.explore){
+                        this.reset()
+                        this.BFS(false);
+                    }
                 }
                 this.mouseDown = false;
             }
@@ -219,6 +237,17 @@ Matrix.prototype.actionListners = function(){
 }
 
 // base functions
+Matrix.prototype.clearCanvas = function(){
+    for(let i=1; i<this.rows-1; i++){
+        for(let j=1;  j<this.cols-1; ++j){
+            this.blocks[i].childNodes[j].style.backgroundColor = "white";
+            this.blocks[i].childNodes[j].innerHTML = "";
+            this.blocks[i].childNodes[j].style.border = this.block_border;
+            
+        }
+    }
+}
+
 Matrix.prototype.buildMatrix = async function(){
     this.toggelBtns();
     while (canvas.firstChild) {
@@ -346,6 +375,9 @@ Matrix.prototype.findPath = async function() {
             case 'dijkstra':
                 await this.dijkstra();
                 break; 
+            case "bidirectional":
+                await this.bidirectionalSearch();
+                break;
         }
     }
     this.toggelBtns();
@@ -357,8 +389,7 @@ Matrix.prototype.DFS = async function (r, c){
         block = this.blocks[r].childNodes[c];
         block.animate(this.exploreAnimation, 1000);
         block.style.backgroundColor = this.explore;
-        if(r===this.end_block[0] && c ===this.end_block[1]){
-            
+        if(r===this.end_block[0] && c ===this.end_block[1]){    
             block.style.backgroundColor = this.path;
             return true;
         }
@@ -382,7 +413,7 @@ Matrix.prototype.DFS = async function (r, c){
     }
 }
 
-Matrix.prototype.BFS = async function(){
+Matrix.prototype.BFS = async function(animate=true){
     let q = [];
     let visited = new Set();
     let backtrack = new Map();
@@ -391,12 +422,17 @@ Matrix.prototype.BFS = async function(){
     while(q.length !==0){
         let node = q.shift();
         if(node === this.blocks[this.end_block[0]].childNodes[this.end_block[1]]){
-            node.style.backgroundColor = this.path;
+            let path = [node];
+            node.style.backgroundColor = this.explore;
             while(node !== this.blocks[this.start_block[0]].childNodes[this.start_block[1]]){
-                await this.delay(35);
                 node = backtrack.get(node);
-                node.animate(this.pathAnimation, 300);
-                node.style.backgroundColor = this.path;
+                path.push(node);
+            }
+            while(path.length !== 0){
+                let p = path.pop();                
+                if(animate)await this.delay(35);
+                if(animate) p.animate(this.pathAnimation, 300);
+                p.style.backgroundColor = this.path;
             }
             break;
         }
@@ -414,9 +450,9 @@ Matrix.prototype.BFS = async function(){
                 }
             }
         }
-        node.animate(this.exploreAnimation, 1000);
+        if(animate)node.animate(this.exploreAnimation, 1000);
         node.style.backgroundColor = this.explore;
-        await this.delay(30);
+        if(animate)await this.delay(30);
     }
 }  
 
@@ -427,7 +463,7 @@ Matrix.prototype.dijkstra = async function(){
     let backtrack = new Map();
 
     for(let i=1; i<this.rows-1; i++){
-        await this.delay(30);
+        await this.delay(20);
         for(let j=1; j<this.cols-1; j++){
             let cBlock = this.blocks[i].childNodes[j];
             if(cBlock.style.backgroundColor !== this.wall){
@@ -451,12 +487,16 @@ Matrix.prototype.dijkstra = async function(){
         await this.delay(30);
 
         if(node === this.blocks[this.end_block[0]].childNodes[this.end_block[1]]){
-            node.style.backgroundColor = this.path;
+            let path = [];
+            path.push(node);
             while(node !== this.blocks[this.start_block[0]].childNodes[this.start_block[1]]){
-                await this.delay(40);
                 node = backtrack.get(node);
-                node.animate(this.pathAnimation, 300);
-                node.style.backgroundColor = this.path;
+                path.push(node);
+            }
+            for(let i=path.length-1; i>=0; --i){                
+                await this.delay(40);
+                path[i].animate(this.pathAnimation, 300);
+                path[i].style.backgroundColor = this.path;
             }
             break;
         }
@@ -490,6 +530,96 @@ Matrix.prototype.dijkstra = async function(){
         }
     }
 }
+
+Matrix.prototype.bidirectionalSearch = async function(){
+    let source_q = [];
+    let destin_q = [];
+
+    let s_visited = new Set();
+    let d_visited = new Set();
+    
+    let s_backtrack = new Map();
+    let d_backtrack = new Map();
+        
+    source_q.push(this.blocks[this.start_block[0]].childNodes[this.start_block[1]]);
+    destin_q.push(this.blocks[this.end_block[0]].childNodes[this.end_block[1]])
+
+    while(source_q.length !==0 || destin_q.length !== 0){
+        let s_node, d_node;
+        if(source_q.length !==0){
+            s_node = source_q.shift();
+            let row_index = s_node.parentElement.rowIndex;
+            let col_index = s_node.cellIndex;    
+            
+            if(d_visited.has(s_node)){
+                s_node.animate(this.exploreAnimation, 1000);        
+                s_node.style.backgroundColor = this.path;
+                let path = [], path2 = [];
+                d_node = s_node;
+                path.push(d_node);
+                
+                while(s_node !== this.blocks[this.start_block[0]].childNodes[this.start_block[1]] || d_node !== this.blocks[this.end_block[0]].childNodes[this.end_block[1]]){    
+                    if(d_node !== this.blocks[this.end_block[0]].childNodes[this.end_block[1]]){
+                        d_node = d_backtrack.get(d_node);
+                        path.push(d_node);
+                    }                    
+                    if(s_node !== this.blocks[this.start_block[0]].childNodes[this.start_block[1]]){
+                        s_node = s_backtrack.get(s_node);
+                        path2.push(s_node);
+                    }
+                }
+                for(let i=path2.length-1; i>=0; --i){
+                    await this.delay(40);
+                    path2[i].animate(this.pathAnimation, 300);
+                    path2[i].style.backgroundColor = this.path;
+                }
+                for(let i=0; i<path.length; ++i){
+                    await this.delay(40);
+                    path[i].animate(this.pathAnimation, 300);
+                    path[i].style.backgroundColor = this.path;
+                }
+                break;
+            }
+
+            for(let i=0; i<4; ++i){
+                let check_row = this.directions[i][0] + row_index;
+                let check_col = this.directions[i][1] + col_index;               
+                if(check_row >= 1 && check_row < this.rows-1 && check_col >=1 && check_col < this.cols-1){
+                    if(this.blocks[check_row].childNodes[check_col].style.backgroundColor !== this.wall && this.blocks[check_row].childNodes[check_col].style.backgroundColor !== this.explore && !s_visited.has(this.blocks[check_row].childNodes[check_col])){
+                        source_q.push(this.blocks[check_row].childNodes[check_col]);
+                        s_visited.add(this.blocks[check_row].childNodes[check_col]);
+                        s_backtrack.set(this.blocks[check_row].childNodes[check_col], s_node);
+                    }
+                }
+            }
+        }
+        if(destin_q.length !==0){
+            d_node = destin_q.shift();
+            let row_index = d_node.parentElement.rowIndex;
+            let col_index = d_node.cellIndex;    
+            
+            for(let i=0; i<4; ++i){
+                let check_row = this.directions[i][0] + row_index;
+                let check_col = this.directions[i][1] + col_index;               
+                if(check_row >= 1 && check_row < this.rows-1 && check_col >=1 && check_col < this.cols-1){
+                    if(this.blocks[check_row].childNodes[check_col].style.backgroundColor !== this.wall && this.blocks[check_row].childNodes[check_col].style.backgroundColor !== this.explore && !d_visited.has(this.blocks[check_row].childNodes[check_col])){
+                        destin_q.push(this.blocks[check_row].childNodes[check_col]);
+                        d_visited.add(this.blocks[check_row].childNodes[check_col]);
+                        d_backtrack.set(this.blocks[check_row].childNodes[check_col],d_node);
+                    }
+                }
+            }
+        }
+        
+        s_node.animate(this.exploreAnimation, 1000);
+        d_node.animate(this.exploreAnimation, 1000);
+        
+        s_node.style.backgroundColor = this.explore;
+        d_node.style.backgroundColor = this.explore;
+        await this.delay(30);
+    }
+}
+
 
 // maze algorithms
 Matrix.prototype.buildFrame = async function(){
@@ -525,14 +655,7 @@ Matrix.prototype.specialMaze = async function(){
 Matrix.prototype.generateMaze = async function(){
     this.isRunning = true;
     this.toggelBtns();
-    for(let i=0; i<this.rows; i++){
-        for(let j=0;  j<this.cols; ++j){
-            this.blocks[i].childNodes[j].style.backgroundColor = "white";
-            this.blocks[i].childNodes[j].innerHTML = "";
-            this.blocks[i].childNodes[j].style.border = this.block_border;
-            
-        }
-    }
+    this.clearCanvas();
     let maze = this.mazeSelect.value;
     switch(maze){
         case "rd":
@@ -557,24 +680,22 @@ Matrix.prototype.generateMaze = async function(){
         
         case "special":
             await this.specialMaze();
-            break;
-            
-            
+            break; 
     }
-    this.buildFrame();
+    // this.buildFrame();
     this.isRunning = false;
     this.toggelBtns();
 }
 
 Matrix.prototype.recursiveBTMazeSetUp = async function(){
-    for(let i=0; i<this.rows; i+=2){
-        await this.delay(150);
-        for(let j=0;  j<this.cols; ++j){
+    for(let i=2; i<this.rows-2; i+=2){
+        await this.delay(80);
+        for(let j=1;  j<this.cols-1; ++j){
             this.makeWall(this.blocks[i].childNodes[j])
         }
     }
-    for(let i=0; i<this.cols; i+=2){
-        await this.delay(150);
+    for(let i=2; i<this.cols-2; i+=2){
+        await this.delay(80);
         for(let j=1;  j<this.rows; j+=2){
             this.makeWall(this.blocks[j].childNodes[i])
         }
@@ -620,7 +741,7 @@ Matrix.prototype.recursiveBTMaze = async function(r, c, visited=new Set()){
     }
 }
 
-Matrix.prototype.verticalBarsMaze = async function(sRow=0,eRow=this.rows-1, sCol=0, eCol=this.cols-1){
+Matrix.prototype.verticalBarsMaze = async function(sRow=1,eRow=this.rows-2, sCol=1, eCol=this.cols-2){
     if(eCol-sCol <=1){
         return;
     }
@@ -637,7 +758,7 @@ Matrix.prototype.verticalBarsMaze = async function(sRow=0,eRow=this.rows-1, sCol
     this.verticalBarsMaze(sRow, eRow, mid+1, eCol);
 }
 
-Matrix.prototype.horizontalBarsMaze = async function(sRow=0,eRow=this.rows-1, sCol=0, eCol=this.cols-1){
+Matrix.prototype.horizontalBarsMaze = async function(sRow=1,eRow=this.rows-2, sCol=1, eCol=this.cols-2){
     if(eRow-sRow <= 1){
         return;
     }
@@ -656,11 +777,11 @@ Matrix.prototype.horizontalBarsMaze = async function(sRow=0,eRow=this.rows-1, sC
     this.horizontalBarsMaze(midRow+1, eRow, sCol, eCol);
 }
 
-Matrix.prototype.recursiveDivisionMaze = async function(sRow=0,eRow=this.rows-1, sCol=0, eCol=this.cols-1){
+Matrix.prototype.recursiveDivisionMaze = async function(sRow=1,eRow=this.rows-2, sCol=1, eCol=this.cols-2){
     if(eCol-sCol <=1 || eRow-sRow <= 1){
         return;
     }
-    await this.delay(20);
+    await this.delay(10);
     let w = eCol-sCol;
     let h = eRow-sRow;
     if(w<h) o=0;
@@ -700,9 +821,9 @@ Matrix.prototype.recursiveDivisionMaze = async function(sRow=0,eRow=this.rows-1,
 }
 
 Matrix.prototype.randomMaze = async function(){
-    for(let i=0; i<this.rows; ++i){
+    for(let i=1; i<this.rows-1; ++i){
         await this.delay(0);
-        for(let j=0; j<this.cols; ++j){
+        for(let j=1; j<this.cols-1; ++j){
             if(i === this.start_block[0] && j === this.start_block[1] || i === this.end_block[0] && j === this.end_block[1]){
                 continue;
             }
@@ -712,9 +833,7 @@ Matrix.prototype.randomMaze = async function(){
             }
         }
     }
-    this.buildFrame();
 }
-
 
 // start
 window.onload = function(){
