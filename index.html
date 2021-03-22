@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maze & Search Algorithms Visualization</title>
     <link rel="stylesheet" href="style.css">
-    <script src="main.js" defer></script>
+    <script type="module" src="main.js" defer></script>
 </head>
 <body>
     <div class="cursorDot"></div>
@@ -21,15 +21,14 @@
                 <option value="vb">Vertical Bars</option>                
             </select>
             <input type="button" class="matrix-btn" title="Shotcut key M" id="generateMaze" value="Generate Maze">
-       
-            
             
             <select id="algorithm" class="select">
                 <option value="bfs">Breath First</option>
                 <option value="dfs">Depth First</option>
                 <option value="dijkstra">Dijkstra's</option>
                 <option value="bidirectional">Bidirectional</option>
-                
+                <option value="astar">A*</option>
+                <option value="bestFirst">Best First</option>
             </select>
             <input type="button" id="start" class="start" title="Shotcut key S" value="start">
             <input type="button" id="reset" class="reset" title="Shotcut key R" value="reset">
