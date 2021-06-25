@@ -2,7 +2,7 @@ import {wall} from './colors.js'
 import {wallAnimation} from './animation.js'
 
 
-const block_border = ".2px solid rgba(15, 15, 15, 0.2)";
+// const block_border = "0.2px solid rgba(184, 184, 184, 0.5)";
 
 export async function delay(time) {
     await new Promise(resolve => {
@@ -13,7 +13,7 @@ export async function delay(time) {
 export function makeWall (cBlock){
     cBlock.animate(wallAnimation, 500 );
     cBlock.style.backgroundColor = wall;
-    cBlock.style.border = "none";
+    // cBlock.style.border = "none";
 }
 
 export function breakWall(cBlock){
@@ -38,8 +38,7 @@ export function clearCanvas(blocks){
         for(let j=1;  j<cols-1; ++j){
             blocks[i].childNodes[j].style.backgroundColor = "white";
             blocks[i].childNodes[j].innerHTML = "";
-            blocks[i].childNodes[j].style.borderRadius = "0px";
-            
+            // blocks[i].childNodes[j].style.borderRadius = "0px";
             // blocks[i].childNodes[j].style.border = block_border;
         }
     }
