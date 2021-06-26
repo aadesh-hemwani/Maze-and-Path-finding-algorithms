@@ -3,11 +3,11 @@ import { wall, path, explore, visited } from "./colors.js";
 export const wallAnimation = [
 	{
 		transform: "scale(0)",
-		backgroundColor: "rgb(120, 120, 120)",
+		backgroundColor: "rgb(200,200,200)",
 	},
 	{
 		transform: "scale(1.3)",
-		backgroundColor: "rgb(61, 61, 61)",
+		backgroundColor: "rgb(120, 120, 120)",
 	},
 	{
 		transform: "scale(1.0)",
